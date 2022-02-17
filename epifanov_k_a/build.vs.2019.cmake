@@ -1,0 +1,5 @@
+set(OpenCV_DIR "C:/opencv/build")
+file(MAKE_DIRECTORY build.vs.2022)
+exec_program(cmake build.vs.2022 ARGS .. -G"Visual Studio 16 2022" -Ax64 -DOpenCV_DIR=${OpenCV_DIR} -Dbuild_suffix=vs2019)
+exec_program(cmake build.vs.2022 ARGS --build . --config Debug)
+exec_program(cmake build.vs.2022 ARGS --build . --config Release)
