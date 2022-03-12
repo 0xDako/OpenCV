@@ -39,6 +39,46 @@ cv::Mat get_img_channel(cv::Mat img, int color = 0) {
 	return output_img;
 }
 
+cv::Mat draw_img_hist(cv::Mat img, int hist_w = 700, int hist_h = 400) 
+{
+	std::vector<int> hist_size = { 256 };
+	std::vector<float> range = { 0, 256 };
+
+	std::vector<cv::Mat> png_channels(3);
+	cv::split(img, png_channels);
+
+	cv::Mat blue_hist, green_hist, red_hist;
+
+	cv::calcHist(std::vector<cv::Mat>{ png_channels[0] }, { 0 }, cv::Mat(), blue_hist, hist_size, range, true);
+	cv::calcHist(std::vector<cv::Mat>{ png_channels[1] }, { 0 }, cv::Mat(), green_hist, hist_size, range, true);
+	cv::calcHist(std::vector<cv::Mat>{ png_channels[2] }, { 0 }, cv::Mat(), red_hist, hist_size, range, true);
+
+	int bin_w = cvRound((double)hist_w / hist_size[0]);
+
+	cv::Mat hist_image(hist_h, hist_w, CV_8UC3, cv::Scalar(0, 0, 0));
+
+	cv::normalize(blue_hist, blue_hist, 0, hist_image.rows, cv::NORM_MINMAX, -1, cv::Mat());
+	cv::normalize(green_hist, green_hist, 0, hist_image.rows, cv::NORM_MINMAX, -1, cv::Mat());
+	cv::normalize(red_hist, red_hist, 0, hist_image.rows, cv::NORM_MINMAX, -1, cv::Mat());
+
+	cv::imshow("134", hist_image);
+
+	for (int i = 1; i < hist_size[0]; i++)
+	{
+		cv::line(hist_image, cv::Point(bin_w * (i - 1), hist_h - cvRound(blue_hist.at<float>(i - 1))),
+			cv::Point(bin_w * (i), hist_h - cvRound(blue_hist.at<float>(i))),
+			cv::Scalar(255, 0, 0), 2, 8, 0);
+		cv::line(hist_image, cv::Point(bin_w * (i - 1), hist_h - cvRound(green_hist.at<float>(i - 1))),
+			cv::Point(bin_w * (i), hist_h - cvRound(green_hist.at<float>(i))),
+			cv::Scalar(0, 255, 0), 2, 8, 0);
+		cv::line(hist_image, cv::Point(bin_w * (i - 1), hist_h - cvRound(red_hist.at<float>(i - 1))),
+			cv::Point(bin_w * (i), hist_h - cvRound(red_hist.at<float>(i))),
+			cv::Scalar(0, 0, 255), 2, 8, 0);
+	}
+
+	return hist_image;
+}
+
 int main() {
 	// read initial image
 	const std::string initial_img_path = "./data/cross_0256x0256.png";
@@ -77,49 +117,13 @@ int main() {
 	
 	// create and draw hist
 
-	std::vector<int> hist_size = { 256 };
-	std::vector<float> range = { 0, 256 };
-
-	cv::Mat png_blue_hist, png_green_hist, png_red_hist;
-
-	std::vector<cv::Mat> png_channels(3);
-	cv::split(initial_img, png_channels);
-
-	cv::calcHist(std::vector<cv::Mat>{ png_channels[0] }, {0}, cv::Mat(), png_blue_hist, hist_size, range, true);
-	cv::calcHist(std::vector<cv::Mat>{ png_channels[1] }, {0}, cv::Mat(), png_green_hist, hist_size, range, true);
-	cv::calcHist(std::vector<cv::Mat>{ png_channels[2] }, {0}, cv::Mat(), png_red_hist, hist_size, range, true);
-	
-	cv::Mat png_hist_image(1024, 1024, CV_8UC3, cv::Scalar(255, 255, 255));
-
-	for (int i = 1; i < hist_size[0]; i++) {
-		cv::line(png_hist_image, cv::Point(4 * (i - 1), png_blue_hist.at<float>(i - 1)), cv::Point(4*i, png_blue_hist.at<float>(i)), cv::Scalar(255,0,0), 2, 8, 0);
-		cv::line(png_hist_image, cv::Point(4 * (i - 1), png_green_hist.at<float>(i - 1)), cv::Point(4*i, png_green_hist.at<float>(i)), cv::Scalar(0, 255, 0), 2, 8, 0);
-		cv::line(png_hist_image, cv::Point(4 * (i - 1), png_red_hist.at<float>(i - 1)), cv::Point(4*i, png_red_hist.at<float>(i)), cv::Scalar(0, 0, 255), 2, 8, 0);
-	}
+	cv::Mat png_hist_image = draw_img_hist(initial_img);
 
 	cv::imwrite("png_hist.png", png_hist_image);
-
-
-	cv::Mat jpg_blue_hist, jpg_green_hist, jpg_red_hist;
-
-	std::vector<cv::Mat> jpg_channels(3);
-	cv::split(jpg_img, jpg_channels);
-
-	cv::calcHist(std::vector<cv::Mat>{ jpg_channels[0] }, { 0 }, cv::Mat(), jpg_blue_hist, hist_size, range, true);
-	cv::calcHist(std::vector<cv::Mat>{ jpg_channels[1] }, { 0 }, cv::Mat(), jpg_green_hist, hist_size, range, true);
-	cv::calcHist(std::vector<cv::Mat>{ jpg_channels[2] }, { 0 }, cv::Mat(), jpg_red_hist, hist_size, range, true);
-
-	cv::Mat jpg_hist_image(1024, 1024, CV_8UC3, cv::Scalar(255, 255, 255));
-
-	for (int i = 1; i < hist_size[0]; i++) {
-		cv::line(jpg_hist_image, cv::Point(4 * (i - 1), jpg_blue_hist.at<float>(i - 1)), cv::Point(4*i, jpg_blue_hist.at<float>(i)), cv::Scalar(255, 0, 0), 2, 8, 0);
-		cv::line(jpg_hist_image, cv::Point(4 * (i - 1), jpg_green_hist.at<float>(i - 1)), cv::Point(4*i, jpg_green_hist.at<float>(i)), cv::Scalar(0, 255, 0), 2, 8, 0);
-		cv::line(jpg_hist_image, cv::Point(4 * (i - 1), jpg_red_hist.at<float>(i - 1)), cv::Point(4*i, jpg_red_hist.at<float>(i)), cv::Scalar(0, 0, 255), 2, 8, 0);
-	}
+	
+	cv::Mat jpg_hist_image = draw_img_hist(jpg_img);
 
 	cv::imwrite("jpg_hist.png", jpg_hist_image);
 
-
 	return 0;
 }
-
