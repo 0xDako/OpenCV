@@ -1,8 +1,8 @@
 ## Работа 3. Яркостные преобразования
-автор: Полевой Д.В.
+автор: Епифанов К.А.
 дата: @time_stemp@
 
-<!-- url: https://gitlab.com/2021-misis-spring/polevoy_d_v/-/tree/master/prj.labs/lab03 -->
+https://github.com/0xDako/OpenCV/tree/main/epifanov_k_a/prj.labs/lab03
 
 ### Задание
 1. В качестве тестового использовать изображение data/cross_0256x0256.png
